@@ -1,26 +1,21 @@
 {
   "name": "typestub-node-lmdb",
   "version": "1.0.0",
-  "description": "",
+  "description": "Typescript wrapper around node-lmdb, with some improvement.",
   "keywords": [],
-  "author": {
-    "name": "Beeno Tung",
-    "email": "aabbcc1241@yahoo.com.hk",
-    "url": "https://beeno-tung.surge.sh"
-  },
+  "author": "Beeno Tung <aabbcc1241@yahoo.com.hk> (https://beeno-tung.surge.sh)",
   "license": "BSD-2-Clause",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "npm run rawtest",
+    "test": "mocha -r ts-node/register **/*.spec.ts",
     "clean": "rimraf node_modules/@beenotung/tslib/index.* dist",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "postformat": "tslint -p . --fix",
     "prebuild": "npm run clean",
     "build": "tsc",
-    "pretest": "npm run format && npm run build",
-    "rawtest": "ts-node test/index.ts",
-    "prepublishOnly": "npm run rawtest && npm run build"
+    "pretest": "npm run format && npm run build && mkdir -p data",
+    "prepublishOnly": "npm run test"
   },
   "husky": {
     "hook": {
@@ -42,11 +37,16 @@
     "dist"
   ],
   "dependencies": {
-    "@beenotung/tslib": "^14.38.5"
+    "@beenotung/tslib": "^14.38.5",
+    "node-lmdb": "^0.7.0"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.4",
+    "@types/mocha": "^5.2.7",
     "@types/node": "*",
+    "chai": "^4.2.0",
     "husky": "^3.0.9",
+    "mocha": "^6.1.4",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
     "ts-node": "^8.4.1",
