@@ -39,7 +39,7 @@ export type ExtendedTxn = Txn & {
   putObject<T>(dbi: Dbi, key: Key, value: T, keyType?: KeyType): void;
 };
 
-type Cursor = {
+export type Cursor = {
   goToFirst(): Key | null;
   goToNext(): Key | null;
   goToKey(key: Key): void;
@@ -100,6 +100,9 @@ export function newEnv() {
     },
   };
 }
+
+export type Env = ReturnType<typeof newEnv>;
+export type OpenedEnv = ReturnType<Env['open']>;
 
 export function newCursor(txn: Txn, dbi: Dbi, keyType?: KeyType) {
   const cursor = new lmdb.Cursor(txn, dbi, keyType);
