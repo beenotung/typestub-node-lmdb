@@ -1,8 +1,14 @@
 {
   "name": "typestub-node-lmdb",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Typescript wrapper around node-lmdb, with some improvement.",
-  "keywords": [],
+  "keywords": [
+    "lmdb",
+    "node-lmdb",
+    "typescript",
+    "typing",
+    "typestub"
+  ],
   "author": "Beeno Tung <aabbcc1241@yahoo.com.hk> (https://beeno-tung.surge.sh)",
   "license": "BSD-2-Clause",
   "main": "dist/index.js",
