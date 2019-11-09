@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { Dbi, ExtendedTxn, Key, newEnv } from './lmdb';
+import { Dbi, ExtendedTxn, Key, newEnv } from '../src/lmdb';
 
 // tslint:disable:no-unused-expression
 
