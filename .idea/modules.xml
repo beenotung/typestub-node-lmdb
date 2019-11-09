@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/typestub-node-lmdb.iml" filepath="$PROJECT_DIR$/.idea/.idea/typestub-node-lmdb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/typestub-node-lmdb.iml" filepath="$PROJECT_DIR$/.idea/typestub-node-lmdb.iml" />
     </modules>
   </component>
 </project>
