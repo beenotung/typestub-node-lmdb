@@ -5,7 +5,10 @@ import { Dbi, ExtendedTxn, Key, newEnv } from '../src/lmdb';
 // tslint:disable:no-unused-expression
 
 function getDB() {
-  const env = newEnv().open({ path: 'data' });
+  const env = newEnv().open({
+    path: 'data',
+    maxDbs: 10,
+  });
   const dbi = env.openDbi({
     name: 'test',
     create: true,
@@ -104,6 +107,31 @@ describe('node-lmdb wrapper TestSuit', () => {
     txn.commit();
 
     dbi.close();
+    env.close();
+  });
+
+  it('should be able to create new Dbi even after txn has began', () => {
+    const { env, dbi } = getDB();
+
+    // set value to a newly created Dbi in the middle of a txn
+    const txn1 = env.beginTxn();
+    txn1.putString(dbi, 'foo', 'bar');
+    const newDbi = env.openDbi({
+      name: Date.now() + Math.random().toString(36).split('.')[1],
+      create: true,
+      txn: txn1,
+    });
+    txn1.putString(newDbi, 'baz', 'buz');
+    txn1.commit();
+
+    // check back the values
+    const txn2 = env.beginTxn();
+    expect(txn2.getString(dbi, 'foo')).equals('bar');
+    expect(txn2.getString(newDbi, 'baz')).equals('buz');
+    txn2.commit();
+
+    newDbi.drop();
+    dbi.drop();
     env.close();
   });
 
