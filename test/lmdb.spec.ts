@@ -44,7 +44,17 @@ function checkNoValues(dbi: Dbi, txn: ExtendedTxn) {
 }
 
 describe('node-lmdb wrapper TestSuit', () => {
-  it('should store value without error', () => {
+
+  it('should not allow readonly transaction doing mutation', () => {
+    const { env, dbi } = getDB();
+    let txn = env.beginTxn({ readOnly: true });
+    if ('putString' in txn) {
+      expect((txn as ExtendedTxn).putString.bind(txn, dbi, 'foo', 'bar')).to.throw('Permission denied');
+    }
+    txn.commit();
+  });
+
+  it('should allow writable transaction to store value without error', () => {
     const { env, dbi, txn } = storeTestValues();
     txn.commit();
     dbi.close();
