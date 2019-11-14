@@ -5,7 +5,7 @@ const lmdb = require('node-lmdb');
 
 export type Dbi = {
   close(): void;
-  drop(): void;
+  drop(options?: { txn: Txn }): void;
 };
 
 export type Key = string | number | boolean | Buffer;
