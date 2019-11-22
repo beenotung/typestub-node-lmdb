@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { Dbi, ExtendedTxn, Key, newEnv } from '../src/lmdb';
+import { Dbi, ExtendedReadonlyTxn, ExtendedTxn, Key, newEnv } from '../src/lmdb';
 
 // tslint:disable:no-unused-expression
 
@@ -38,7 +38,7 @@ function deleteTestValues(dbi: Dbi, txn: ExtendedTxn, strict = true) {
   del('obj');
 }
 
-function checkNoValues(dbi: Dbi, txn: ExtendedTxn) {
+function checkNoValues(dbi: Dbi, txn: ExtendedReadonlyTxn) {
   expect(txn.getString(dbi, 'str')).null;
   expect(txn.getBinary(dbi, 'bin')).null;
   expect(txn.getNumber(dbi, 'num')).null;
@@ -135,11 +135,7 @@ describe('node-lmdb wrapper TestSuit', () => {
     env.close();
   });
 
-  // FIXME this cause deadlock, is it expected behaviour?
   it('writer should not interference with reader', () => {
-    if ('skip deadlock check') {
-      return;
-    }
     const { env, dbi } = getDB();
     const cleanupTxn = env.beginTxn();
 
@@ -153,7 +149,7 @@ describe('node-lmdb wrapper TestSuit', () => {
 
     // the values shouldn't be there
     console.log('begin read tx');
-    const readTxn = env.beginTxn(); // will deadlock here
+    const readTxn = env.beginTxn({ readOnly: true });
     console.log('began read tx');
     checkNoValues(dbi, readTxn);
 
