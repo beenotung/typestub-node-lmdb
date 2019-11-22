@@ -28,10 +28,15 @@ export type ReadonlyTxn = {
   renew(): void;
 };
 export type Txn = ReadonlyTxn & {
-  putString(dbi: Dbi, key: Key, value: string, keyType?: KeyType): void;
+  putString(dbi: Dbi, key: Key, value: string | null, keyType?: KeyType): void;
   putBinary(dbi: Dbi, key: Key, value: Buffer, keyType?: KeyType): void;
-  putNumber(dbi: Dbi, key: Key, value: number, keyType?: KeyType): void;
-  putBoolean(dbi: Dbi, key: Key, value: boolean, keyType?: KeyType): void;
+  putNumber(dbi: Dbi, key: Key, value: number | null, keyType?: KeyType): void;
+  putBoolean(
+    dbi: Dbi,
+    key: Key,
+    value: boolean | null,
+    keyType?: KeyType,
+  ): void;
   del(dbi: Dbi, key: Key, keyType?: KeyType): void;
 };
 export type ExtendedReadonlyTxn = ReadonlyTxn & {
@@ -44,7 +49,7 @@ export type ExtendedReadonlyTxn = ReadonlyTxn & {
 };
 export type ExtendedTxn = Txn &
   ExtendedReadonlyTxn & {
-    putObject<T>(dbi: Dbi, key: Key, value: T, keyType?: KeyType): void;
+    putObject<T>(dbi: Dbi, key: Key, value: T | null, keyType?: KeyType): void;
     // delete if exist
     clear(dbi: Dbi, key: Key, keyType?: KeyType): void;
   };

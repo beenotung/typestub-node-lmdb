@@ -78,6 +78,30 @@ describe('node-lmdb wrapper TestSuit', () => {
     env.close();
   });
 
+  it('should put null as value', () => {
+    const { env, dbi } = getDB();
+    const txn = env.beginTxn();
+    txn.putString(dbi, 'foo', 'bar');
+
+    txn.putString(dbi, 'foo', null);
+    expect(txn.getString(dbi, 'foo')).equals('');
+
+    // binary cannot be null, will raise runtime error (SIGABRT stop the whole VM)
+    // txn.putBinary(dbi, 'foo', null as any);
+    // expect(txn.getBinary(dbi, 'foo')).deep.equals(Buffer.from([]));
+
+    txn.putNumber(dbi, 'foo', null);
+    expect(txn.getNumber(dbi, 'foo')).equals(0);
+
+    txn.putBoolean(dbi, 'foo', null);
+    expect(txn.getBoolean(dbi, 'foo')).equals(false);
+
+    txn.putObject(dbi, 'foo', null);
+    expect(txn.getObject(dbi, 'foo')).equals(null);
+
+    txn.commit();
+  });
+
   it('should not get deleted value', () => {
     const { env, dbi, txn } = storeTestValues();
     txn.commit();
