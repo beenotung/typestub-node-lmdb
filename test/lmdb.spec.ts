@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { Dbi, ExtendedReadonlyTxn, ExtendedTxn, Key, newEnv } from '../src/lmdb';
+import { Dbi, ExtendedReadonlyTxn, ExtendedTxn, Key, newCursor, newEnv } from '../src/lmdb';
 
 // tslint:disable:no-unused-expression
 
@@ -144,22 +144,87 @@ describe('node-lmdb wrapper TestSuit', () => {
     cleanupTxn.commit();
 
     // store values but don't commit
-    console.log('begin write tx');
     const writeTxn = storeTestValues().txn;
 
     // the values shouldn't be there
-    console.log('begin read tx');
     const readTxn = env.beginTxn({ readOnly: true });
-    console.log('began read tx');
     checkNoValues(dbi, readTxn);
 
-    console.log('commit read tx');
     readTxn.commit();
-    console.log('commit write tx');
     writeTxn.commit();
 
     dbi.close();
     env.close();
+  });
+
+  it('should be able to get value of any type', () => {
+    const { env, dbi, txn } = storeTestValues();
+
+    expect(txn.getAny(dbi, 'str')).equals('foo');
+    expect(txn.getAny(dbi, 'bin')).deep.equals(Buffer.from([1, 2, 3]));
+    expect(txn.getAny(dbi, 'num')).equals(1);
+    expect(txn.getAny(dbi, 'bool')).equals(true);
+    expect(txn.getAny(dbi, 'obj')).deep.equals({ foo: 'bar' });
+
+    txn.putBoolean(dbi, 'true', true);
+    txn.putBoolean(dbi, 'false', false);
+    txn.putNumber(dbi, 'num', 42);
+    txn.putNumber(dbi, 'zero', 0);
+    txn.putNumber(dbi, 'one', 1);
+
+    expect(txn.getAny(dbi, 'true')).equals(true);
+    expect(txn.getAny(dbi, 'false')).equals(false);
+    expect(txn.getAny(dbi, 'num')).equals(42);
+    expect(txn.getAny(dbi, 'zero')).equals(0);
+    expect(txn.getAny(dbi, 'one')).equals(1);
+
+    txn.putBinary(dbi, '8bit', Buffer.from([1, 2, 3, 3, 4, 5, 6, 7, 8]));
+    expect(txn.getAny(dbi, '8bit')).deep.equals(Buffer.from([1, 2, 3, 3, 4, 5, 6, 7, 8]));
+
+    // cannot distinct before 7bit binary and number
+    // txn.putBinary(dbi, '7bit', Buffer.from([1, 2, 3, 3, 4, 5, 6, 7]));
+    // expect(txn.getAny(dbi, '7bit')).deep.equals(Buffer.from([1, 2, 3, 3, 4, 5, 6, 7]));
+    // expect(typeof txn.getAny(dbi, '7bit')).equals('number');
+
+    txn.commit();
+  });
+
+  it('should copy any value as binary', () => {
+    const { env, dbi, txn } = storeTestValues();
+
+    function copy(key: string) {
+      const value = txn.getBinary(dbi, key)!;
+      txn.putBinary(dbi, 'acc', value);
+    }
+
+    copy('str');
+    expect(txn.getString(dbi, 'str')).equals('foo');
+
+    copy('bin');
+    expect(txn.getBinary(dbi, 'bin')).deep.equals(Buffer.from([1, 2, 3]));
+
+    copy('num');
+    expect(txn.getNumber(dbi, 'num')).equals(1);
+
+    copy('bool');
+    expect(txn.getBoolean(dbi, 'bool')).equals(true);
+
+    copy('obj');
+    expect(txn.getObject(dbi, 'obj')).deep.equals({ foo: 'bar' });
+
+    txn.commit();
+  });
+
+  it('should be able to scan all key/value pairs', () => {
+    const { env, dbi } = getDB();
+    const txn = env.beginTxn();
+    const cursor = newCursor(txn, dbi);
+    let key = cursor.goToFirst();
+    while (key !== null) {
+      let value = txn.getAny(dbi, key);
+      key = cursor.goToNext();
+    }
+    txn.commit();
   });
 });
 // tslint:enable:no-unused-expression

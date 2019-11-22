@@ -36,6 +36,11 @@ export type Txn = ReadonlyTxn & {
 };
 export type ExtendedReadonlyTxn = ReadonlyTxn & {
   getObject<T>(dbi: Dbi, key: Key, keyType?: KeyType): T | null;
+  getAny<T>(
+    dbi: Dbi,
+    key: Key,
+    keyType?: KeyType,
+  ): string | Buffer | number | boolean | T | null;
 };
 export type ExtendedTxn = Txn &
   ExtendedReadonlyTxn & {
@@ -75,7 +80,7 @@ type OpenDbiOptions = {
 function extendReadonlyTxn<T extends ReadonlyTxn>(
   txn: T,
 ): T & ExtendedReadonlyTxn {
-  return Object.assign(txn, {
+  const self = Object.assign(txn, {
     getObject<T>(dbi: Dbi, key: Key, keyType?: KeyType): T | null {
       const value = txn.getString(dbi, key, keyType);
       if (value === null) {
@@ -83,7 +88,54 @@ function extendReadonlyTxn<T extends ReadonlyTxn>(
       }
       return JSON.parse(value);
     },
+    getAny<T>(
+      dbi: Dbi,
+      key: Key,
+      keyType?: KeyType,
+    ): string | Buffer | number | boolean | T | null {
+      const bin = txn.getBinary(dbi, key, keyType);
+      if (bin === null) {
+        return null;
+      }
+      if (bin.length === 1) {
+        switch (bin[0]) {
+          case 0:
+            return false;
+          case 1:
+            return true;
+        }
+      }
+      try {
+        return self.getObject(dbi, key, keyType);
+      } catch (e) {
+        // not object
+      }
+      try {
+        const str = txn.getString(dbi, key, keyType)!;
+        let ok = true;
+        for (let i = 0; i < str.length; i++) {
+          if (str.charCodeAt(i) === 0) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          return str;
+        }
+      } catch (e) {
+        // not string
+      }
+      if (bin.length === 8) {
+        try {
+          return txn.getNumber(dbi, key, keyType);
+        } catch (e) {
+          // not number
+        }
+      }
+      return bin;
+    },
   });
+  return self;
 }
 
 function extendTxn<T extends Txn>(txn: T): T & ExtendedTxn {
