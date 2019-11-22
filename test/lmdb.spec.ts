@@ -239,6 +239,23 @@ describe('node-lmdb wrapper TestSuit', () => {
     txn.commit();
   });
 
+  it('should be able to set any value type', () => {
+    const { env, dbi } = getDB();
+    const txn = env.beginTxn();
+    const test = (value: any) => {
+      txn.putAny(dbi, 'foo', value);
+      expect(txn.getAny(dbi, 'foo')).deep.equals(value);
+    };
+    test('str');
+    test(Buffer.from([1, 2, 3]));
+    test(42);
+    test(true);
+    test(false);
+    test({ foo: 'bar' });
+
+    txn.commit();
+  });
+
   it('should be able to scan all key/value pairs', () => {
     const { env, dbi } = getDB();
     const txn = env.beginTxn();

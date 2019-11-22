@@ -50,6 +50,12 @@ export type ExtendedReadonlyTxn = ReadonlyTxn & {
 export type ExtendedTxn = Txn &
   ExtendedReadonlyTxn & {
     putObject<T>(dbi: Dbi, key: Key, value: T | null, keyType?: KeyType): void;
+    putAny<T>(
+      dbi: Dbi,
+      key: Key,
+      value: string | Buffer | number | boolean | T,
+      keyType?: KeyType,
+    ): void;
     // delete if exist
     clear(dbi: Dbi, key: Key, keyType?: KeyType): void;
   };
@@ -144,9 +150,31 @@ function extendReadonlyTxn<T extends ReadonlyTxn>(
 }
 
 function extendTxn<T extends Txn>(txn: T): T & ExtendedTxn {
-  return Object.assign(extendReadonlyTxn(txn), {
+  const self = Object.assign(extendReadonlyTxn(txn), {
     putObject(dbi: Dbi, key: Key, value: any, keyType?: KeyType): void {
       txn.putString(dbi, key, JSON.stringify(value), keyType);
+    },
+    putAny<T>(
+      dbi: Dbi,
+      key: Key,
+      value: string | Buffer | number | boolean | T,
+      keyType?: KeyType,
+    ): void {
+      switch (typeof value) {
+        case 'string':
+          return txn.putString(dbi, key, value, keyType);
+        case 'number':
+          return txn.putNumber(dbi, key, value, keyType);
+        case 'boolean':
+          return txn.putBoolean(dbi, key, value, keyType);
+        case 'object':
+          return value instanceof Buffer || Buffer.isBuffer(value)
+            ? txn.putBinary(dbi, key, value, keyType)
+            : self.putObject(dbi, key, value, keyType);
+        default:
+          console.warn('unknown object type:', { type: typeof value, value });
+          return self.putObject(dbi, key, value, keyType);
+      }
     },
     clear(dbi: Dbi, key: Key, keyType?: KeyType): void {
       try {
@@ -160,6 +188,7 @@ function extendTxn<T extends Txn>(txn: T): T & ExtendedTxn {
       }
     },
   });
+  return self;
 }
 
 export function newEnv() {
