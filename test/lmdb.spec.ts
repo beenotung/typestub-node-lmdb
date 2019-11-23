@@ -267,5 +267,29 @@ describe('node-lmdb wrapper TestSuit', () => {
     }
     txn.commit();
   });
+
+  it('should be able to count keys', function() {
+    const { env, dbi } = getDB();
+    const txn = env.beginTxn();
+
+    // clear all keys
+    txn.forEachKey(dbi, key => {
+      txn.del(dbi, key);
+    });
+
+    // should have no keys now
+    expect(txn.keyCount(dbi)).equals(0);
+    expect(txn.keys(dbi).length).equals(0);
+
+    // set some key/value
+    txn.putString(dbi, 'foo', 'bar');
+    txn.putString(dbi, 'bar', 'baz');
+
+    // check key count
+    expect(txn.keyCount(dbi)).equals(2);
+    expect(txn.keys(dbi).length).equals(2);
+
+    txn.commit();
+  });
 });
 // tslint:enable:no-unused-expression

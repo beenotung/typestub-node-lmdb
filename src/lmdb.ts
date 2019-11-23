@@ -46,6 +46,9 @@ export type ExtendedReadonlyTxn = ReadonlyTxn & {
     key: Key,
     keyType?: KeyType,
   ): string | Buffer | number | boolean | T | null;
+  forEachKey(dbi: Dbi, f: (key: Key) => void | 'break'): void;
+  keyCount(dbi: Dbi): number;
+  keys(dbi: Dbi): Key[];
 };
 export type ExtendedTxn = Txn &
   ExtendedReadonlyTxn & {
@@ -145,6 +148,30 @@ function extendReadonlyTxn<T extends ReadonlyTxn>(
       }
       return bin;
     },
+    forEachKey(dbi: Dbi, f: (key: Key) => void | 'break'): void {
+      const cursor = newCursor(txn, dbi);
+      let key = cursor.goToFirst();
+      while (key !== null) {
+        if (f(key) === 'break') {
+          break;
+        }
+        key = cursor.goToNext();
+      }
+    },
+    keyCount(dbi: Dbi): number {
+      let acc = 0;
+      self.forEachKey(dbi, () => {
+        acc++;
+      });
+      return acc;
+    },
+    keys(dbi: Dbi): Key[] {
+      const keys: Key[] = [];
+      self.forEachKey(dbi, key => {
+        keys.push(key);
+      });
+      return keys;
+    },
   });
   return self;
 }
@@ -230,7 +257,7 @@ export function newEnv() {
 export type Env = ReturnType<typeof newEnv>;
 export type OpenedEnv = ReturnType<Env['open']>;
 
-export function newCursor(txn: Txn, dbi: Dbi, keyType?: KeyType) {
+export function newCursor(txn: ReadonlyTxn, dbi: Dbi, keyType?: KeyType) {
   const cursor = new lmdb.Cursor(txn, dbi, keyType);
   return cursor as Cursor;
 }
