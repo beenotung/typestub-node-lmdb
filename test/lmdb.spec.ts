@@ -291,5 +291,21 @@ describe('node-lmdb wrapper TestSuit', () => {
 
     txn.commit();
   });
+
+  it('should open existing dbi during write txn without user-supplied txn', function() {
+    const { env } = getDB();
+    {
+      const txn = env.beginTxn();
+      env.openDbi({ name: '1', create: true, txn });
+      env.openDbi({ name: '2', create: true, txn });
+      txn.commit();
+    }
+    {
+      const txn = env.beginTxn();
+      env.openDbi({ name: '1' });
+      env.openDbi({ name: '2' });
+      txn.commit();
+    }
+  });
 });
 // tslint:enable:no-unused-expression
