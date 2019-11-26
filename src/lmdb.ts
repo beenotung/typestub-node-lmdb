@@ -224,13 +224,13 @@ export function newEnv() {
     open(options: { path: string; mapSize?: number; maxDbs?: number }) {
       env.open(options);
 
+      function beginTxn(options: { readOnly: true }): ExtendedReadonlyTxn;
       function beginTxn(
         options?: { readOnly?: false } | undefined,
       ): ExtendedTxn;
-      function beginTxn(options: { readOnly: true }): ExtendedReadonlyTxn;
       function beginTxn(options?: {
         readOnly?: boolean;
-      }): ExtendedTxn | ExtendedReadonlyTxn {
+      }): ExtendedReadonlyTxn | ExtendedTxn {
         const txn = env.beginTxn(options);
         if (options && options.readOnly) {
           return extendReadonlyTxn(txn as ReadonlyTxn);
