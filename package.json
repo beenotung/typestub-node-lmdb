@@ -43,7 +43,7 @@
     "dist"
   ],
   "dependencies": {
-    "node-lmdb": "^0.7.0"
+    "node-lmdb": "^0.9.4"
   },
   "devDependencies": {
     "@types/chai": "^4.2.4",
