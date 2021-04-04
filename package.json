@@ -21,12 +21,8 @@
     "prebuild": "npm run clean",
     "build": "tsc",
     "pretest": "npm run format && npm run build && mkdir -p data",
-    "prepublishOnly": "npm run test"
-  },
-  "husky": {
-    "hook": {
-      "pre-commit": "npm run format"
-    }
+    "prepublishOnly": "npm run test",
+    "prepare": "husky install"
   },
   "directories": {
     "test": "test"
@@ -50,7 +46,7 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "*",
     "chai": "^4.3.4",
-    "husky": "^3.1.0",
+    "husky": "^6.0.0",
     "mocha": "^8.3.2",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
