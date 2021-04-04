@@ -1,10 +1,20 @@
 import { expect } from 'chai';
-import 'mocha';
-import { Dbi, ExtendedReadonlyTxn, ExtendedTxn, Key, newCursor, newEnv } from '../src/lmdb';
+import { existsSync, mkdirSync } from 'fs';
+import {
+  Dbi,
+  ExtendedReadonlyTxn,
+  ExtendedTxn,
+  Key,
+  newCursor,
+  newEnv,
+} from '../src/lmdb';
 
-// tslint:disable:no-unused-expression
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 function getDB() {
+  if (!existsSync('data')) {
+    mkdirSync('data');
+  }
   const env = newEnv().open({
     path: 'data',
     maxDbs: 10,
@@ -47,12 +57,13 @@ function checkNoValues(dbi: Dbi, txn: ExtendedReadonlyTxn) {
 }
 
 describe('node-lmdb wrapper TestSuit', () => {
-
   it('should not allow readonly transaction doing mutation', () => {
     const { env, dbi } = getDB();
-    let txn = env.beginTxn({ readOnly: true });
+    const txn = env.beginTxn({ readOnly: true });
     if ('putString' in txn) {
-      expect((txn as ExtendedTxn).putString.bind(txn, dbi, 'foo', 'bar')).to.throw('Permission denied');
+      expect(
+        (txn as ExtendedTxn).putString.bind(txn, dbi, 'foo', 'bar'),
+      ).to.throw('Permission denied');
     }
     txn.commit();
   });
@@ -203,7 +214,9 @@ describe('node-lmdb wrapper TestSuit', () => {
     expect(txn.getAny(dbi, 'one')).equals(1);
 
     txn.putBinary(dbi, '8bit', Buffer.from([1, 2, 3, 3, 4, 5, 6, 7, 8]));
-    expect(txn.getAny(dbi, '8bit')).deep.equals(Buffer.from([1, 2, 3, 3, 4, 5, 6, 7, 8]));
+    expect(txn.getAny(dbi, '8bit')).deep.equals(
+      Buffer.from([1, 2, 3, 3, 4, 5, 6, 7, 8]),
+    );
 
     // cannot distinct before 7bit binary and number
     // txn.putBinary(dbi, '7bit', Buffer.from([1, 2, 3, 3, 4, 5, 6, 7]));
@@ -262,13 +275,13 @@ describe('node-lmdb wrapper TestSuit', () => {
     const cursor = newCursor(txn, dbi);
     let key = cursor.goToFirst();
     while (key !== null) {
-      let value = txn.getAny(dbi, key);
+      const value = txn.getAny(dbi, key);
       key = cursor.goToNext();
     }
     txn.commit();
   });
 
-  it('should be able to count keys', function() {
+  it('should be able to count keys', function () {
     const { env, dbi } = getDB();
     const txn = env.beginTxn();
 
@@ -292,7 +305,7 @@ describe('node-lmdb wrapper TestSuit', () => {
     txn.commit();
   });
 
-  it('should open existing dbi during write txn without user-supplied txn', function() {
+  it('should open existing dbi during write txn without user-supplied txn', function () {
     const { env } = getDB();
     {
       const txn = env.beginTxn();

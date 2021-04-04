@@ -1,7 +1,6 @@
 // reference: https://github.com/Venemo/node-lmdb/blob/master/README.md
 
-// tslint:disable-next-line:no-var-requires
-const lmdb = require('node-lmdb');
+import * as lmdb from 'node-lmdb';
 
 export type Dbi = {
   close(): void;

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
     "allowJs": false,
     "sourceMap": true,
     "declaration": true,
@@ -8,15 +7,13 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "strict": true,
-    "lib": [
-      "dom",
-      "es2015",
-      "es2018"
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
     ],
-    "downlevelIteration": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "es5",
+    "target": "es6",
     "outDir": "dist"
   },
   "include": [
@@ -24,9 +21,5 @@
   ],
   "exclude": [
     "node_modules"
-  ],
-  "compileOnSave": false,
-  "atom": {
-    "rewriteTsconfig": false
-  }
+  ]
 }
