@@ -1,6 +1,6 @@
 {
   "name": "typestub-node-lmdb",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "description": "Typescript wrapper around node-lmdb, with some improvement.",
   "keywords": [
     "lmdb",
